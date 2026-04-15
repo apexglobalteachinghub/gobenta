@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { AppProviders } from "@/components/providers/app-providers";
 
@@ -21,6 +22,10 @@ const site =
 
 export const metadata: Metadata = {
   metadataBase: new URL(site),
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg",
+  },
   title: {
     default: "GoBenta.ph — Buy & sell everything",
     template: "%s · GoBenta.ph",
@@ -51,6 +56,7 @@ export default function RootLayout({
       >
         <AppProviders>
           <div className="flex min-h-full flex-col">
+            <AnnouncementBar />
             <div className="flex min-h-0 flex-1 flex-col">{children}</div>
             <SiteFooter />
           </div>

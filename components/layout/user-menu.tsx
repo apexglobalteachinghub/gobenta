@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { NavNotificationBell } from "@/components/layout/nav-notification-bell";
+import { useInboxUnread } from "@/components/layout/use-inbox-unread";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
@@ -26,6 +28,7 @@ type Props = {
 export function UserMenu({ userId, email, name, avatarUrl }: Props) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const inbox = useInboxUnread(userId);
 
   useEffect(() => {
     if (!open) return;
@@ -63,6 +66,10 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
 
   return (
     <div className="flex items-center gap-1 sm:gap-2">
+      <NavNotificationBell
+        unreadCount={inbox.unreadCount}
+        recentUnread={inbox.recentUnread}
+      />
       <Link
         href="/saved"
         className="hidden rounded-full p-2 text-zinc-600 hover:bg-zinc-100 sm:block dark:text-zinc-300 dark:hover:bg-zinc-800"
@@ -72,10 +79,23 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
       </Link>
       <Link
         href="/messages"
-        className="hidden rounded-full p-2 text-zinc-600 hover:bg-zinc-100 sm:block dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="relative hidden rounded-full p-2 text-zinc-600 hover:bg-zinc-100 sm:block dark:text-zinc-300 dark:hover:bg-zinc-800"
         title="Messages"
+        aria-label={
+          inbox.unreadCount > 0
+            ? `Messages, ${inbox.unreadCount} unread`
+            : "Messages"
+        }
       >
         <MessageCircle className="h-5 w-5" />
+        {inbox.unreadCount > 0 ? (
+          <span
+            className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-accent px-1 text-[10px] font-bold leading-none text-white shadow-sm ring-2 ring-white dark:ring-zinc-950"
+            aria-hidden
+          >
+            {inbox.unreadCount > 99 ? "99+" : inbox.unreadCount}
+          </span>
+        ) : null}
       </Link>
       <Link
         href="/listing/new"
@@ -168,10 +188,17 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
             <Link
               href="/messages"
               role="menuitem"
-              className={cn(itemClass, "sm:hidden")}
+              className={cn(itemClass, "justify-between sm:hidden")}
               onClick={() => setOpen(false)}
             >
-              <MessageCircle className="h-4 w-4" /> Messages
+              <span className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4 shrink-0" /> Messages
+              </span>
+              {inbox.unreadCount > 0 ? (
+                <span className="rounded-full bg-brand-accent px-2 py-0.5 text-[11px] font-bold text-white">
+                  {inbox.unreadCount > 99 ? "99+" : inbox.unreadCount}
+                </span>
+              ) : null}
             </Link>
             <Link
               href="/listing/new"

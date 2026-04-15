@@ -13,6 +13,13 @@ const helpLinks = [
   { href: "/contact", label: "Contact us" },
 ] as const;
 
+const promotionLinks = [
+  {
+    href: "/promotions/win-trip-to-japan-for-2",
+    label: "Win a trip to Japan for 2",
+  },
+] as const;
+
 const navTitleClass =
   "text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
 const linkClass =
@@ -41,6 +48,16 @@ export function SiteFooter() {
               <h2 className={navTitleClass}>Help Center</h2>
               <nav aria-label="Help center" className="mt-3 flex flex-col gap-2">
                 {helpLinks.map((item) => (
+                  <Link key={item.href} href={item.href} className={linkClass}>
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+            <div>
+              <h2 className={navTitleClass}>Promotions</h2>
+              <nav aria-label="Promotions" className="mt-3 flex flex-col gap-2">
+                {promotionLinks.map((item) => (
                   <Link key={item.href} href={item.href} className={linkClass}>
                     {item.label}
                   </Link>
