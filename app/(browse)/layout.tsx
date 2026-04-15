@@ -1,8 +1,18 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import { CategoryCarousel } from "@/components/layout/category-carousel";
-import { FilterSidebar } from "@/components/layout/filter-sidebar";
-import { MobileFilterPanel } from "@/components/layout/mobile-filter-panel";
 import { Navbar } from "@/components/layout/navbar";
+
+const CategoryCarousel = dynamic(() =>
+  import("@/components/layout/category-carousel").then((m) => m.CategoryCarousel)
+);
+const FilterSidebar = dynamic(() =>
+  import("@/components/layout/filter-sidebar").then((m) => m.FilterSidebar)
+);
+const MobileFilterPanel = dynamic(() =>
+  import("@/components/layout/mobile-filter-panel").then(
+    (m) => m.MobileFilterPanel
+  )
+);
 import {
   getAllCategoriesFlat,
   getMainCategories,

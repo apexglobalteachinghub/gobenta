@@ -45,6 +45,7 @@ export function ListingCard({ listing, lcpImage = false }: CardProps) {
             alt={listing.title}
             fill
             priority={lcpImage}
+            quality={72}
             className="object-cover transition group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
@@ -54,6 +55,7 @@ export function ListingCard({ listing, lcpImage = false }: CardProps) {
             alt=""
             fill
             priority={lcpImage}
+            quality={85}
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 33vw"
           />

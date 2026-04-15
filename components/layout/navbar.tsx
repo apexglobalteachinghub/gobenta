@@ -1,10 +1,30 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { GobentaLogo } from "@/components/branding/gobenta-logo";
+import { AuthLinks } from "@/components/layout/auth-links";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import { SearchBar } from "@/components/layout/search-bar";
-import { AuthLinks, UserMenu } from "@/components/layout/user-menu";
+
+const SearchBar = dynamic(() =>
+  import("@/components/layout/search-bar").then((m) => m.SearchBar)
+);
+
+const UserMenu = dynamic(
+  () => import("@/components/layout/user-menu").then((m) => m.UserMenu),
+  {
+    loading: () => (
+      <div
+        className="flex h-9 items-center gap-2"
+        aria-busy="true"
+        aria-label="Loading account menu"
+      >
+        <span className="h-9 w-9 shrink-0 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-700" />
+        <span className="hidden h-9 w-24 shrink-0 animate-pulse rounded-full bg-zinc-200 sm:block dark:bg-zinc-700" />
+      </div>
+    ),
+  }
+);
 
 export async function Navbar() {
   let user: { id: string; email?: string | null } | null = null;
