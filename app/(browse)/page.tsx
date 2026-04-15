@@ -1,9 +1,7 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
-import { HomeListings } from "@/components/home/home-listings";
-import { ListingGridSkeleton } from "@/components/listing/listing-grid-skeleton";
+import { ListingGrid } from "@/components/listing/listing-grid";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import type { ListingFilters } from "@/lib/queries/listings";
+import { getListings, type ListingFilters } from "@/lib/queries/listings";
 
 export const metadata: Metadata = {
   title: "Browse listings",
@@ -46,6 +44,8 @@ export default async function HomePage({
   const setupRedirect =
     typeof sp.supabase === "string" && sp.supabase === "missing";
 
+  const listings = await getListings(filters);
+
   return (
     <div>
       {!isSupabaseConfigured() && (
@@ -80,9 +80,7 @@ export default async function HomePage({
       <h1 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
         Today&apos;s picks
       </h1>
-      <Suspense fallback={<ListingGridSkeleton />}>
-        <HomeListings filters={filters} />
-      </Suspense>
+      <ListingGrid listings={listings} lcpImageCount={4} />
     </div>
   );
 }

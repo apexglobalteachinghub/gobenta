@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -8,12 +8,6 @@ import { AppProviders } from "@/components/providers/app-providers";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -40,16 +34,33 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+function supabaseOrigin(): string | null {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!raw) return null;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return null;
+  }
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const storageOrigin = supabaseOrigin();
+
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <head>
+        {storageOrigin ? (
+          <>
+            <link rel="preconnect" href={storageOrigin} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={storageOrigin} />
+          </>
+        ) : null}
+      </head>
       <body
         className="min-h-full bg-zinc-50 font-sans text-base leading-normal text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-50"
         suppressHydrationWarning

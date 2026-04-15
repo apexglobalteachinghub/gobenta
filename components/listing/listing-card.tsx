@@ -14,7 +14,13 @@ function pickImage(listing: ListingWithRelations) {
   return sorted[0]?.image_url ?? null;
 }
 
-export function ListingCard({ listing }: { listing: ListingWithRelations }) {
+type CardProps = {
+  listing: ListingWithRelations;
+  /** First viewport images: preload for faster LCP (home / key grids). */
+  lcpImage?: boolean;
+};
+
+export function ListingCard({ listing, lcpImage = false }: CardProps) {
   const src = pickImage(listing);
   const sellerRating = listing.sellerRating ?? { avg: 0, count: 0 };
   const sold = !!listing.transaction_completed_at;
@@ -38,6 +44,7 @@ export function ListingCard({ listing }: { listing: ListingWithRelations }) {
             src={src}
             alt={listing.title}
             fill
+            priority={lcpImage}
             className="object-cover transition group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
@@ -46,6 +53,7 @@ export function ListingCard({ listing }: { listing: ListingWithRelations }) {
             src="/placeholder-listing.svg"
             alt=""
             fill
+            priority={lcpImage}
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 33vw"
           />

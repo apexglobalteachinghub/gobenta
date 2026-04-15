@@ -2,7 +2,13 @@ import type { ListingWithRelations } from "@/types/database";
 import { ListingCard } from "@/components/listing/listing-card";
 import { PackageOpen } from "lucide-react";
 
-export function ListingGrid({ listings }: { listings: ListingWithRelations[] }) {
+type GridProps = {
+  listings: ListingWithRelations[];
+  /** Mark the first N card images as high priority (above-the-fold LCP). */
+  lcpImageCount?: number;
+};
+
+export function ListingGrid({ listings, lcpImageCount = 0 }: GridProps) {
   if (!listings.length) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
@@ -20,8 +26,12 @@ export function ListingGrid({ listings }: { listings: ListingWithRelations[] }) 
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {listings.map((l) => (
-        <ListingCard key={l.id} listing={l} />
+      {listings.map((l, i) => (
+        <ListingCard
+          key={l.id}
+          listing={l}
+          lcpImage={i < lcpImageCount}
+        />
       ))}
     </div>
   );
