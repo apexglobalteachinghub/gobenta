@@ -3,6 +3,7 @@ import { GobentaLogo } from "@/components/branding/gobenta-logo";
 
 const legalLinks = [
   { href: "/terms", label: "Terms & conditions" },
+  { href: "/privacy", label: "Privacy policy" },
   { href: "/marketplace-rules", label: "Marketplace rules" },
   { href: "/chat-ratings-reviews", label: "Chat, ratings & reviews" },
   { href: "/protect-yourself", label: "Protect yourself (scams)" },
@@ -17,6 +18,10 @@ const promotionLinks = [
   {
     href: "/promotions/win-trip-to-japan-for-2",
     label: "Win a trip to Japan for 2",
+  },
+  {
+    href: "/promotions/500k-giveaway",
+    label: "Win \u20B1500,000 giveaway",
   },
 ] as const;
 
