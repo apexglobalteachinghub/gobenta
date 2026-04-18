@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
+import { MetaPixelPageView } from "@/components/analytics/meta-pixel-pageview";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { getMetaPixelId } from "@/lib/analytics/meta-pixel-id";
 import { AppProviders } from "@/components/providers/app-providers";
 
 const inter = Inter({
@@ -50,6 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const storageOrigin = supabaseOrigin();
+  const metaPixelId = getMetaPixelId();
 
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
@@ -65,7 +70,37 @@ export default function RootLayout({
         className="min-h-full bg-zinc-50 font-sans text-base leading-normal text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-50"
         suppressHydrationWarning
       >
+        <Script
+          id="meta-pixel-base"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${metaPixelId}');
+fbq('track', 'PageView');
+            `.trim(),
+          }}
+        />
+        <noscript>
+          <img
+            height={1}
+            width={1}
+            className="hidden"
+            alt=""
+            src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
+          />
+        </noscript>
         <AppProviders>
+          <Suspense fallback={null}>
+            <MetaPixelPageView />
+          </Suspense>
           <div className="flex min-h-full flex-col">
             <AnnouncementBar />
             <div className="flex min-h-0 flex-1 flex-col">{children}</div>
