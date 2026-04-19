@@ -10,8 +10,16 @@ const PROTECTED_PREFIXES = [
 ];
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
+
+  // OAuth return: must not run getUser()/session refresh here. That calls setAll
+  // and can clear or reorder Supabase auth cookies before the route handler runs
+  // exchangeCodeForSession — leading to bad_oauth_callback / "OAuth state parameter missing".
+  if (path === "/auth/callback") {
+    return NextResponse.next({ request });
+  }
+
+  let supabaseResponse = NextResponse.next({ request });
 
   const needsAuth = PROTECTED_PREFIXES.some(
     (p) => path === p || path.startsWith(`${p}/`)
