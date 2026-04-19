@@ -63,6 +63,18 @@ export function AuthUrlErrorCleaner() {
     let hashHandled = false;
 
     if (typeof window !== "undefined" && window.location.hash) {
+      const rawHash = window.location.hash;
+      // Facebook OAuth appends "#_=_" to the redirect URL; it is only visible client-side.
+      if (rawHash === "#_=_" || rawHash.replace(/^#/, "") === "_=_") {
+        window.history.replaceState(
+          null,
+          "",
+          pathname + window.location.search
+        );
+      }
+    }
+
+    if (typeof window !== "undefined" && window.location.hash) {
       const hash = window.location.hash.replace(/^#/, "");
       if (
         hash.includes("error=") ||

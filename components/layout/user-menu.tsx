@@ -25,6 +25,35 @@ type Props = {
   avatarUrl: string | null;
 };
 
+function MenuAvatarChip({
+  avatarUrl,
+  initial,
+}: {
+  avatarUrl: string;
+  initial: string;
+}) {
+  const [broken, setBroken] = useState(false);
+  if (broken) {
+    return (
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+        {initial}
+      </span>
+    );
+  }
+  return (
+    <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
+      <Image
+        src={avatarUrl}
+        alt=""
+        width={32}
+        height={32}
+        className="h-8 w-8 object-cover"
+        onError={() => setBroken(true)}
+      />
+    </span>
+  );
+}
+
 export function UserMenu({ userId, email, name, avatarUrl }: Props) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -117,15 +146,11 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
           )}
         >
           {avatarUrl ? (
-            <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
-              <Image
-                src={avatarUrl}
-                alt=""
-                width={32}
-                height={32}
-                className="h-8 w-8 object-cover"
-              />
-            </span>
+            <MenuAvatarChip
+              key={avatarUrl}
+              avatarUrl={avatarUrl}
+              initial={initial}
+            />
           ) : (
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
               {initial}
@@ -133,7 +158,9 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
           )}
           {!avatarUrl ? (
             <span className="truncate">{label}</span>
-          ) : null}
+          ) : (
+            <span className="sr-only">{label}</span>
+          )}
         </button>
 
         {open ? (
