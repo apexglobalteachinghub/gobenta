@@ -5,6 +5,10 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase/env";
 import { PENDING_ROLE_COOKIE } from "@/lib/auth/pending-role-cookie";
+import {
+  SIGNIN_FLASH_COOKIE,
+  type SigninFlashValue,
+} from "@/lib/auth/signin-flash-cookie";
 import type { UserRole } from "@/types/database";
 
 function safeNextPath(raw: string | null): string {
@@ -12,9 +16,25 @@ function safeNextPath(raw: string | null): string {
   return raw;
 }
 
+function redirectLoginWithFlash(
+  request: NextRequest,
+  flash: SigninFlashValue
+): NextResponse {
+  const url = new URL("/login", request.url);
+  const res = NextResponse.redirect(url);
+  const secure = url.protocol === "https:";
+  res.cookies.set(SIGNIN_FLASH_COOKIE, flash, {
+    path: "/",
+    maxAge: 120,
+    sameSite: "lax",
+    secure,
+  });
+  return res;
+}
+
 export async function GET(request: NextRequest) {
   if (!isSupabaseConfigured()) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return redirectLoginWithFlash(request, "oauth");
   }
 
   const { url: supabaseUrl, anonKey } = getSupabasePublicEnv();
@@ -26,11 +46,9 @@ export async function GET(request: NextRequest) {
 
   if (!code) {
     if (oauthErr || oauthDesc) {
-      return NextResponse.redirect(
-        new URL("/login?error=oauth_failed", request.url)
-      );
+      return redirectLoginWithFlash(request, "oauth");
     }
-    return NextResponse.redirect(new URL("/login?error=missing_code", request.url));
+    return redirectLoginWithFlash(request, "missing_code");
   }
 
   const response = NextResponse.redirect(`${origin}${next}`);
@@ -50,9 +68,7 @@ export async function GET(request: NextRequest) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(
-      new URL(`/login?error=oauth_failed`, request.url)
-    );
+    return redirectLoginWithFlash(request, "oauth");
   }
 
   const pending = request.cookies.get(PENDING_ROLE_COOKIE)?.value;

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { getFacebookLoginScopes } from "@/lib/auth/facebook-oauth-scopes";
 import { createClient } from "@/lib/supabase/client";
 import { clearPendingRoleCookieClient } from "@/lib/auth/pending-role-cookie";
+import { readAndClearSigninFlashClient } from "@/lib/auth/signin-flash-cookie";
 import { FacebookIcon } from "@/components/auth/facebook-icon";
 import { GoogleIcon } from "@/components/auth/google-icon";
 
@@ -21,6 +22,14 @@ export function LoginForm() {
 
   useEffect(() => {
     clearPendingRoleCookieClient();
+    const flash = readAndClearSigninFlashClient();
+    if (flash === "oauth") {
+      toast.error(
+        "Sign-in could not be finished. If you used Facebook, double-check the Facebook app secret and OAuth redirect URL in Meta match your Supabase project, then try again."
+      );
+    } else if (flash === "missing_code") {
+      toast.error("Sign-in session expired. Please try again.");
+    }
   }, []);
 
   async function signInWithGoogle() {
