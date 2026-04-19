@@ -35,6 +35,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_PH",
     siteName: "GoBenta.ph",
+    title: "GoBenta.ph — Buy & sell everything",
+    description:
+      "Philippines marketplace — win up to ₱500,000, shop local deals, list your items. GCash, Maya, COD friendly.",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "GoBenta.ph — Win ₱500,000 giveaway, buy and sell on the marketplace",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GoBenta.ph — Buy & sell everything",
+    description:
+      "Philippines marketplace — shop, sell, and join promos. Listings nationwide.",
+    images: ["/og.png"],
   },
   robots: { index: true, follow: true },
 };

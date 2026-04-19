@@ -7,6 +7,24 @@ export const metadata: Metadata = {
   title: "Browse listings",
   description:
     "Buy and sell products, services, vehicles, property, jobs, and digital goods across the Philippines.",
+  openGraph: {
+    title: "GoBenta.ph — Win ₱500,000 giveaway & shop the marketplace",
+    description:
+      "Buy or sell on GoBenta.ph — Philippines marketplace with promos, GCash, Maya, COD, and listings nationwide.",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "GoBenta.ph — Win ₱500,000 giveaway",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GoBenta.ph — Win ₱500,000 giveaway & shop the marketplace",
+    images: ["/og.png"],
+  },
 };
 
 export default async function HomePage({
