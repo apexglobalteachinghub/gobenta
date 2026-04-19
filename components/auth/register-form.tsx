@@ -4,13 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getFacebookLoginScopes } from "@/lib/auth/facebook-oauth-scopes";
 import { createClient } from "@/lib/supabase/client";
+import { FacebookIcon } from "@/components/auth/facebook-icon";
 import { GoogleIcon } from "@/components/auth/google-icon";
 
 export function RegisterForm() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
+  const [facebookPending, setFacebookPending] = useState(false);
+  const socialPending = googlePending || facebookPending;
 
   async function signInWithGoogle() {
     const supabase = createClient();
@@ -21,6 +25,23 @@ export function RegisterForm() {
       options: { redirectTo },
     });
     setGooglePending(false);
+    if (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function signInWithFacebook() {
+    const supabase = createClient();
+    setFacebookPending(true);
+    const redirectTo = `${window.location.origin}/auth/callback?next=/`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: {
+        redirectTo,
+        scopes: getFacebookLoginScopes(),
+      },
+    });
+    setFacebookPending(false);
     if (error) {
       toast.error(error.message);
     }
@@ -55,15 +76,26 @@ export function RegisterForm() {
 
   return (
     <div className="mt-6 space-y-6">
-      <button
-        type="button"
-        onClick={() => void signInWithGoogle()}
-        disabled={googlePending}
-        className="flex w-full items-center justify-center gap-3 rounded-full border border-zinc-200 bg-white py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-      >
-        <GoogleIcon className="h-5 w-5" />
-        {googlePending ? "Redirecting…" : "Continue with Google"}
-      </button>
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => void signInWithGoogle()}
+          disabled={socialPending}
+          className="flex w-full items-center justify-center gap-3 rounded-full border border-zinc-200 bg-white py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+        >
+          <GoogleIcon className="h-5 w-5" />
+          {googlePending ? "Redirecting…" : "Continue with Google"}
+        </button>
+        <button
+          type="button"
+          onClick={() => void signInWithFacebook()}
+          disabled={socialPending}
+          className="flex w-full items-center justify-center gap-3 rounded-full border border-zinc-200 bg-white py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+        >
+          <FacebookIcon className="h-5 w-5 shrink-0" />
+          {facebookPending ? "Redirecting…" : "Continue with Facebook"}
+        </button>
+      </div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
