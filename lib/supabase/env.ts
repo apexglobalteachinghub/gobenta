@@ -28,5 +28,12 @@ export function getSupabasePublicEnv(): { url: string; anonKey: string } {
     );
   }
 
+  const host = parsed.hostname;
+  if (host.includes("*") || host.includes("%")) {
+    throw new Error(
+      "NEXT_PUBLIC_SUPABASE_URL has invalid characters (* or %). Paste the Project URL exactly from Supabase → Settings → API with no markdown or redaction — e.g. https://YOUR_PROJECT_REF.supabase.co"
+    );
+  }
+
   return { url: parsed.origin, anonKey };
 }
