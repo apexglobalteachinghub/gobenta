@@ -13,5 +13,20 @@ export function getSupabasePublicEnv(): { url: string; anonKey: string } {
       "Supabase is not configured. Copy .env.example to .env.local and set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (Project Settings → API in Supabase)."
     );
   }
-  return { url, anonKey };
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(
+      "NEXT_PUBLIC_SUPABASE_URL is not a valid URL. Use the Project URL from Supabase → Settings → API."
+    );
+  }
+  if (parsed.pathname !== "/" && parsed.pathname !== "") {
+    throw new Error(
+      "NEXT_PUBLIC_SUPABASE_URL must be the project base only (e.g. https://abcd.supabase.co), not the OAuth callback. Remove /auth/v1/callback from this value."
+    );
+  }
+
+  return { url: parsed.origin, anonKey };
 }

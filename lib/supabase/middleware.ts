@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getSupabasePublicEnv, isSupabaseConfigured } from "@/lib/supabase/env";
 
 const PROTECTED_PREFIXES = [
   "/listing/new",
@@ -36,9 +36,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  const { url: supabaseUrl, anonKey } = getSupabasePublicEnv();
+
+  const supabase = createServerClient(supabaseUrl, anonKey,
     {
       cookies: {
         getAll() {
