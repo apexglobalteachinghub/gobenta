@@ -21,8 +21,15 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = safeNextPath(searchParams.get("next"));
+  const oauthErr = searchParams.get("error");
+  const oauthDesc = searchParams.get("error_description");
 
   if (!code) {
+    if (oauthErr || oauthDesc) {
+      return NextResponse.redirect(
+        new URL("/login?error=oauth_failed", request.url)
+      );
+    }
     return NextResponse.redirect(new URL("/login?error=missing_code", request.url));
   }
 
