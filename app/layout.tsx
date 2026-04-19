@@ -7,6 +7,7 @@ import { MetaPixelPageView } from "@/components/analytics/meta-pixel-pageview";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { getMetaPixelId } from "@/lib/analytics/meta-pixel-id";
+import { AuthUrlErrorCleaner } from "@/components/auth/auth-url-error-cleaner";
 import { AppProviders } from "@/components/providers/app-providers";
 
 const inter = Inter({
@@ -98,6 +99,9 @@ fbq('track', 'PageView');
           />
         </noscript>
         <AppProviders>
+          <Suspense fallback={null}>
+            <AuthUrlErrorCleaner />
+          </Suspense>
           <Suspense fallback={null}>
             <MetaPixelPageView />
           </Suspense>
