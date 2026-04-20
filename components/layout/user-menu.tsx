@@ -128,9 +128,10 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
       </Link>
       <Link
         href="/listing/new"
-        className="hidden h-9 shrink-0 items-center gap-1.5 rounded-full bg-brand px-3.5 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 hover:bg-brand-hover dark:ring-white/10 sm:inline-flex"
+        className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-brand px-4 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:ring-white/10 sm:h-9 sm:px-3.5"
+        aria-label="Sell — list a new item"
       >
-        <Plus className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+        <Plus className="h-5 w-5 shrink-0 sm:h-4 sm:w-4" strokeWidth={2.5} aria-hidden />
         Sell
       </Link>
 
@@ -226,14 +227,6 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
                   {inbox.unreadCount > 99 ? "99+" : inbox.unreadCount}
                 </span>
               ) : null}
-            </Link>
-            <Link
-              href="/listing/new"
-              role="menuitem"
-              className={cn(itemClass, "sm:hidden")}
-              onClick={() => setOpen(false)}
-            >
-              <Plus className="h-4 w-4" /> Sell
             </Link>
             <button
               type="button"

@@ -8,6 +8,8 @@ import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { getMetaPixelId } from "@/lib/analytics/meta-pixel-id";
 import { AuthUrlErrorCleaner } from "@/components/auth/auth-url-error-cleaner";
+import { SiteVisitBeacon } from "@/components/analytics/site-visit-beacon";
+import { ExecutiveDeniedToast } from "@/components/executive/executive-denied-toast";
 import { AppProviders } from "@/components/providers/app-providers";
 
 const inter = Inter({
@@ -117,8 +119,12 @@ fbq('track', 'PageView');
           />
         </noscript>
         <AppProviders>
+          <SiteVisitBeacon />
           <Suspense fallback={null}>
             <AuthUrlErrorCleaner />
+          </Suspense>
+          <Suspense fallback={null}>
+            <ExecutiveDeniedToast />
           </Suspense>
           <Suspense fallback={null}>
             <MetaPixelPageView />

@@ -9,6 +9,7 @@ create table if not exists public.users (
   name text not null default '',
   avatar_url text,
   role text not null default 'buyer' check (role in ('buyer', 'seller')),
+  is_executive boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -63,7 +64,8 @@ begin
         role = case
           when excluded.role in ('buyer', 'seller') then excluded.role
           else public.users.role
-        end;
+        end,
+        is_executive = public.users.is_executive;
   return new;
 end;
 $$;

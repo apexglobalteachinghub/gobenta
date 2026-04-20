@@ -4,7 +4,11 @@ alter table public.users
   add column if not exists role text not null default 'buyer'
   check (role in ('buyer', 'seller'));
 
+alter table public.users
+  add column if not exists is_executive boolean not null default false;
+
 comment on column public.users.role is 'Account intent: buyer or seller (set at registration).';
+comment on column public.users.is_executive is 'Internal dashboard access; set via supabase/executive.sql promote snippet.';
 
 create or replace function public.handle_new_user ()
 returns trigger
@@ -54,7 +58,8 @@ begin
         role = case
           when excluded.role in ('buyer', 'seller') then excluded.role
           else public.users.role
-        end;
+        end,
+        is_executive = public.users.is_executive;
   return new;
 end;
 $$;

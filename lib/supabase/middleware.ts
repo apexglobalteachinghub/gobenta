@@ -61,6 +61,51 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const isExecutiveLogin = path === "/executive/login";
+  const isExecutiveArea = path.startsWith("/executive");
+
+  if (isExecutiveArea) {
+    if (isExecutiveLogin) {
+      if (user) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("is_executive")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profile?.is_executive) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/executive";
+          url.search = "";
+          return NextResponse.redirect(url);
+        }
+      }
+      return supabaseResponse;
+    }
+
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/executive/login";
+      url.searchParams.set("next", path);
+      return NextResponse.redirect(url);
+    }
+
+    const { data: profile } = await supabase
+      .from("users")
+      .select("is_executive")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!profile?.is_executive) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = "";
+      url.searchParams.set("executive", "denied");
+      return NextResponse.redirect(url);
+    }
+
+    return supabaseResponse;
+  }
+
   if (needsAuth && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -68,7 +113,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if ((path === "/login" || path === "/register") && user) {
+  if ((path === "/login" || path === "/register") && user && !isExecutiveLogin) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.searchParams.delete("next");

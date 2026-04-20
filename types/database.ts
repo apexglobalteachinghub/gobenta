@@ -17,6 +17,8 @@ export type UserRow = {
   name: string;
   avatar_url: string | null;
   role: UserRole;
+  /** Set only in Supabase; gates /executive. */
+  is_executive?: boolean;
   created_at: string;
   phone?: string | null;
   address_public?: string | null;
