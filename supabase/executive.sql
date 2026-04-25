@@ -104,7 +104,9 @@ begin
           when excluded.role in ('buyer', 'seller') then excluded.role
           else public.users.role
         end,
-        is_executive = public.users.is_executive;
+        is_executive = public.users.is_executive,
+        banned_at = public.users.banned_at,
+        is_verified_live_seller = public.users.is_verified_live_seller;
   return new;
 end;
 $$;

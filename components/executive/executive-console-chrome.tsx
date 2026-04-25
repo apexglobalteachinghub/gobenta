@@ -9,6 +9,7 @@ import {
   LogOut,
   MessagesSquare,
   Package,
+  Radio,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import { cn } from "@/lib/cn";
 const NAV = [
   { href: "/executive", label: "Dashboard", icon: LayoutDashboard },
   { href: "/executive/deals", label: "Deals & chat", icon: MessagesSquare },
+  { href: "/executive/live-applications", label: "Live sellers", icon: Radio },
   { href: "/executive/customers", label: "Customers", icon: Users },
   { href: "/executive/listings", label: "Listings", icon: Package },
 ] as const;

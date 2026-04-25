@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 import { formatPhp } from "@/lib/format";
 import type { ListingWithRelations } from "@/types/database";
 import { PaymentBadges } from "@/components/listing/payment-badges";
+import { VerifiedLiveSellerBadge } from "@/components/live/verified-live-seller-badge";
 import { StarDisplay } from "@/components/listing/star-display";
 import { cn } from "@/lib/cn";
 import {
@@ -98,6 +99,9 @@ export function ListingCard({ listing, lcpImage = false }: CardProps) {
             <span className="max-w-[85%] truncate text-xs font-semibold text-zinc-800 dark:text-zinc-200">
               {listing.seller?.name?.trim() || "Seller"}
             </span>
+            {listing.seller?.is_verified_live_seller ? (
+              <VerifiedLiveSellerBadge compact className="shrink-0" />
+            ) : null}
             <StarDisplay
               avg={sellerRating.avg}
               count={sellerRating.count}

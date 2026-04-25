@@ -10,6 +10,18 @@ alter table public.users
 alter table public.users
   add column if not exists banned_at timestamptz;
 
+alter table public.users
+  add column if not exists is_verified_live_seller boolean not null default false;
+
+alter table public.users
+  add column if not exists live_seller_suspended_until timestamptz;
+
+alter table public.users
+  add column if not exists live_buyer_claim_strikes int not null default 0;
+
+alter table public.users
+  add column if not exists live_seller_violation_count int not null default 0;
+
 comment on column public.users.role is 'Account intent: buyer or seller (set at registration).';
 comment on column public.users.is_executive is 'Internal dashboard access; set via supabase/executive.sql promote snippet.';
 comment on column public.users.banned_at is 'When set, middleware blocks the session until cleared.';
@@ -64,7 +76,8 @@ begin
           else public.users.role
         end,
         is_executive = public.users.is_executive,
-        banned_at = public.users.banned_at;
+        banned_at = public.users.banned_at,
+        is_verified_live_seller = public.users.is_verified_live_seller;
   return new;
 end;
 $$;

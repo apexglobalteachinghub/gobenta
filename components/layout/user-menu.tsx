@@ -6,6 +6,7 @@ import {
   LogOut,
   MessageCircle,
   Plus,
+  Radio,
   ShoppingBag,
   Store,
   User,
@@ -125,6 +126,14 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
             {inbox.unreadCount > 99 ? "99+" : inbox.unreadCount}
           </span>
         ) : null}
+      </Link>
+      <Link
+        href="/live"
+        className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 sm:h-9"
+        aria-label="Live selling"
+      >
+        <Radio className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+        Live
       </Link>
       <Link
         href="/listing/new"

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Radio } from "lucide-react";
 import { ListingGrid } from "@/components/listing/listing-grid";
+import { VerifiedLiveSellerBadge } from "@/components/live/verified-live-seller-badge";
 import { ProfileReviewsList } from "@/components/profile/profile-reviews-list";
 import { StarDisplay } from "@/components/listing/star-display";
 import { getActiveListingsForUser } from "@/lib/queries/listings";
@@ -32,6 +34,13 @@ export default async function PublicUserPage({ params }: Props) {
     getActiveListingsForUser(id),
     createClient(),
   ]);
+
+  const { data: liveRow } = await supabase
+    .from("live_streams")
+    .select("id")
+    .eq("seller_id", id)
+    .eq("status", "live")
+    .maybeSingle();
 
   const {
     data: { user: me },
@@ -68,9 +77,23 @@ export default async function PublicUserPage({ params }: Props) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            {profile.name?.trim() || "Member"}
-          </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+              {profile.name?.trim() || "Member"}
+            </h1>
+            {profile.is_verified_live_seller ? (
+              <VerifiedLiveSellerBadge />
+            ) : null}
+            {liveRow?.id ? (
+              <Link
+                href={`/live/${liveRow.id}`}
+                className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-[11px] font-bold uppercase text-white"
+              >
+                <Radio className="h-3 w-3" />
+                Live now
+              </Link>
+            ) : null}
+          </div>
           <StarDisplay avg={stats.avg} count={stats.count} className="mt-2" />
           {profile.bio?.trim() ? (
             <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">

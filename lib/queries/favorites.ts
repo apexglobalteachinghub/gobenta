@@ -37,7 +37,7 @@ export async function getSavedListings(
       `
       listing:listings (
         *,
-        seller:users!listings_user_id_fkey(id, name, avatar_url),
+        seller:users!listings_user_id_fkey(id, name, avatar_url, is_verified_live_seller),
         category:categories!listings_category_id_fkey(id, name),
         subcategory:categories!listings_subcategory_id_fkey(id, name),
         images(id, image_url, sort_order)

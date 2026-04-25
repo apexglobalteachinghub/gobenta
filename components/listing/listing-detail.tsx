@@ -10,6 +10,7 @@ import { FavoriteButton } from "@/components/listing/favorite-button";
 import { CompleteTransactionPanel } from "@/components/listing/complete-transaction";
 import { ListingReviewPanel } from "@/components/listing/listing-review-panel";
 import { StarDisplay } from "@/components/listing/star-display";
+import { VerifiedLiveSellerBadge } from "@/components/live/verified-live-seller-badge";
 
 type Props = {
   listing: ListingWithRelations;
@@ -147,12 +148,17 @@ export function ListingDetail({
             )}
             <div className="min-w-0 flex-1">
               {seller ? (
-                <Link
-                  href={`/u/${seller.id}`}
-                  className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
-                >
-                  {seller.name ?? "Seller"}
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/u/${seller.id}`}
+                    className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
+                  >
+                    {seller.name ?? "Seller"}
+                  </Link>
+                  {seller.is_verified_live_seller ? (
+                    <VerifiedLiveSellerBadge compact />
+                  ) : null}
+                </div>
               ) : (
                 <p className="font-medium text-zinc-900 dark:text-zinc-50">
                   Seller

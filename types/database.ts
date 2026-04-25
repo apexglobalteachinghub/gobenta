@@ -21,6 +21,11 @@ export type UserRow = {
   is_executive?: boolean;
   /** When set, the account is blocked (executive tooling + middleware). */
   banned_at?: string | null;
+  /** Executive-approved live selling access. */
+  is_verified_live_seller?: boolean;
+  live_seller_suspended_until?: string | null;
+  live_buyer_claim_strikes?: number;
+  live_seller_violation_count?: number;
   created_at: string;
   phone?: string | null;
   address_public?: string | null;
@@ -94,7 +99,11 @@ export type MessageRow = {
 };
 
 export type ListingWithRelations = ListingRow & {
-  seller: Pick<UserRow, "id" | "name" | "avatar_url"> | null;
+  seller:
+    | (Pick<UserRow, "id" | "name" | "avatar_url"> & {
+        is_verified_live_seller?: boolean;
+      })
+    | null;
   /** Filled when listings are loaded for grids (home, saved, profile). */
   sellerRating?: UserRatingStats;
   category: Pick<CategoryRow, "id" | "name"> | null;

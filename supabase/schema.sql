@@ -11,6 +11,10 @@ create table if not exists public.users (
   role text not null default 'buyer' check (role in ('buyer', 'seller')),
   is_executive boolean not null default false,
   banned_at timestamptz,
+  is_verified_live_seller boolean not null default false,
+  live_seller_suspended_until timestamptz,
+  live_buyer_claim_strikes int not null default 0,
+  live_seller_violation_count int not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -68,7 +72,8 @@ begin
           else public.users.role
         end,
         is_executive = public.users.is_executive,
-        banned_at = public.users.banned_at;
+        banned_at = public.users.banned_at,
+        is_verified_live_seller = public.users.is_verified_live_seller;
   return new;
 end;
 $$;

@@ -8,7 +8,7 @@ export async function getUserById(userId: string): Promise<UserRow | null> {
   const { data, error } = await supabase
     .from("users")
     .select(
-      "id, name, avatar_url, role, created_at, phone, address_public, government_id_type, government_id_last4, bio"
+      "id, name, avatar_url, role, created_at, phone, address_public, government_id_type, government_id_last4, bio, is_verified_live_seller, live_seller_suspended_until"
     )
     .eq("id", userId)
     .maybeSingle();
