@@ -12,6 +12,7 @@ const legalLinks = [
 const helpLinks = [
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact us" },
+  { href: "/help/apply-live-seller", label: "Apply as Live Seller" },
 ] as const;
 
 const promotionLinks = [

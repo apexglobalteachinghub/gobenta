@@ -94,6 +94,90 @@ export const faqItems: FaqAccordionItem[] = [
     ),
   },
   {
+    id: "live-selling-what",
+    question: "What is live selling on GoBenta.ph?",
+    answer: (
+      <>
+        <strong>Live selling</strong> lets verified sellers host a stream and
+        showcase products from their shop. Viewers can <strong>claim</strong> an
+        item during the stream to show interest; you then arrange payment and
+        delivery with the buyer in chat—there is <strong>no in-app checkout</strong>{" "}
+        for live claims. Browse active streams on <L href="/live">Live</L>.
+      </>
+    ),
+  },
+  {
+    id: "live-selling-register",
+    question: "How do I register to become a live seller?",
+    answer: (
+      <>
+        You need a normal GoBenta account (register or log in). Then submit a{" "}
+        <strong>live seller application</strong> with your store and verification
+        details. Our team reviews every application; only after{" "}
+        <strong>approval</strong> do you get the verified live seller status and
+        can start a stream. Apply anytime from{" "}
+        <L href="/help/apply-live-seller">Apply as Live Seller</L> (Help Center){" "}
+        or from <L href="/profile/selling">Selling</L> in your account.
+      </>
+    ),
+  },
+  {
+    id: "live-selling-application",
+    question: "What information do I submit for a live seller application?",
+    answer: (
+      <>
+        The form asks for your <strong>store name</strong>,{" "}
+        <strong>contact phone</strong>, optional email and Messenger/Viber, a{" "}
+        <strong>valid ID</strong> (image upload), the{" "}
+        <strong>categories</strong> you sell in, and{" "}
+        <strong>sample listings</strong> from your active shop listings. You can
+        add optional notes about past live-selling experience. List a few items
+        first via <L href="/listing/new">Create a listing</L> if you need
+        samples.
+      </>
+    ),
+  },
+  {
+    id: "live-selling-approval",
+    question: "What happens after I apply? Who approves me?",
+    answer: (
+      <>
+        Applications are reviewed by <strong>GoBenta executives</strong> (not
+        automatic). You&apos;ll see a status such as pending, under review,
+        approved, rejected, or changes requested. If we need more detail,
+        resubmit from the same form when status allows. Only{" "}
+        <strong>approved</strong> sellers receive the verified badge and can use{" "}
+        <strong>Go live</strong> on <L href="/profile/selling">Selling</L>.
+      </>
+    ),
+  },
+  {
+    id: "live-selling-stream",
+    question: "How do I start a live stream after I'm approved?",
+    answer: (
+      <>
+        Open <L href="/profile/selling">Selling</L>, use the <strong>Go live</strong>{" "}
+        section: set a stream title, optionally paste a YouTube watch or embed
+        URL for playback, choose which listings to feature, and start. You&apos;ll
+        be taken to your stream page where viewers can watch and claim items.
+      </>
+    ),
+  },
+  {
+    id: "live-selling-claims",
+    question: "How do claims and fulfilment work for live selling?",
+    answer: (
+      <>
+        A buyer <strong>claims</strong> a product during your stream to signal
+        they want it. You coordinate payment and shipping off-platform as you
+        already do for marketplace deals. Use your <strong>live claims</strong>{" "}
+        list on <L href="/profile/selling">Selling</L> to track status and mark
+        shipped or completed when appropriate. Same trust and safety habits apply—see{" "}
+        <L href="/protect-yourself">Protect yourself (scams)</L>.
+      </>
+    ),
+  },
+  {
     id: "reviews",
     question: "How do ratings and reviews work?",
     answer: (

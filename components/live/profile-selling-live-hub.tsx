@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2, Radio, Video } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { LiveSellerApplicationPanel } from "@/components/live/live-seller-application-panel";
 import { VerifiedLiveSellerBadge } from "@/components/live/verified-live-seller-badge";
 import type { LiveSellerApplicationRow } from "@/types/live-selling";
 import { formatPhp } from "@/lib/format";
@@ -31,7 +32,6 @@ export function ProfileSellingLiveHub({
   activeListings,
   categories,
 }: Props) {
-  const [application, setApplication] = useState(initialApplication);
   const [busy, setBusy] = useState(false);
   const [claims, setClaims] = useState<
     {
@@ -43,12 +43,6 @@ export function ProfileSellingLiveHub({
       claimed_at: string;
     }[]
   >([]);
-
-  const refreshApp = useCallback(async () => {
-    const res = await fetch("/api/live/applications/me");
-    const json = (await res.json()) as { application?: LiveSellerApplicationRow };
-    setApplication(json.application ?? null);
-  }, []);
 
   const loadClaims = useCallback(async () => {
     const supabase = createClient();
@@ -67,52 +61,6 @@ export function ProfileSellingLiveHub({
 
   const suspended =
     suspendedUntil && new Date(suspendedUntil).getTime() > Date.now();
-
-  async function submitApplication(fd: FormData) {
-    setBusy(true);
-    const supabase = createClient();
-    const file = fd.get("id_file");
-    if (!(file instanceof File) || file.size === 0) {
-      toast.error("Upload a valid ID image");
-      setBusy(false);
-      return;
-    }
-    const path = `${userId}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
-    const { error: upErr } = await supabase.storage
-      .from("live-seller-docs")
-      .upload(path, file, { upsert: false });
-    if (upErr) {
-      toast.error(upErr.message);
-      setBusy(false);
-      return;
-    }
-
-    const category_labels = fd.getAll("category_labels").map(String);
-    const sample_listing_ids = fd.getAll("sample_listing_ids").map(String);
-
-    const res = await fetch("/api/live/applications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        store_name: fd.get("store_name"),
-        contact_phone: fd.get("contact_phone"),
-        contact_email: fd.get("contact_email") || null,
-        contact_messenger: fd.get("contact_messenger") || null,
-        valid_id_storage_path: path,
-        category_labels,
-        sample_listing_ids,
-        experience_text: fd.get("experience_text") || null,
-      }),
-    });
-    const json = (await res.json()) as { error?: string };
-    setBusy(false);
-    if (!res.ok) {
-      toast.error(json.error ?? "Failed");
-      return;
-    }
-    toast.success("Application submitted");
-    await refreshApp();
-  }
 
   async function startLive(fd: FormData) {
     setBusy(true);
@@ -190,135 +138,13 @@ export function ProfileSellingLiveHub({
       ) : null}
 
       {!isVerifiedLiveSeller ? (
-        <section className="space-y-3">
-          <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">
-            Apply as live seller
-          </h3>
-          {application ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Status:{" "}
-              <strong className="capitalize text-zinc-900 dark:text-zinc-100">
-                {application.status.replace(/_/g, " ")}
-              </strong>
-              {application.review_note ? (
-                <>
-                  {" "}
-                  — {application.review_note}
-                </>
-              ) : null}
-            </p>
-          ) : null}
-          {application?.status === "changes_requested" ||
-          !application ||
-          application.status === "rejected" ? (
-            <form
-              className="grid max-w-lg gap-3 text-sm"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void submitApplication(new FormData(e.currentTarget));
-              }}
-            >
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300">
-                Store name
-                <input
-                  name="store_name"
-                  required
-                  className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-                />
-              </label>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300">
-                Phone
-                <input
-                  name="contact_phone"
-                  required
-                  className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-                />
-              </label>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300">
-                Email (optional)
-                <input
-                  name="contact_email"
-                  type="email"
-                  className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-                />
-              </label>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300">
-                Messenger / Viber (optional)
-                <input
-                  name="contact_messenger"
-                  className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-                />
-              </label>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300">
-                Valid ID (image)
-                <input
-                  name="id_file"
-                  type="file"
-                  accept="image/*"
-                  required
-                  className="mt-1 w-full text-xs"
-                />
-              </label>
-              <fieldset>
-                <legend className="font-medium text-zinc-700 dark:text-zinc-300">
-                  Categories you sell
-                </legend>
-                <div className="mt-2 flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-                  {categories.map((c) => (
-                    <label key={c.id} className="flex items-center gap-1.5">
-                      <input
-                        type="checkbox"
-                        name="category_labels"
-                        value={c.name}
-                        className="rounded border-zinc-300 text-brand"
-                      />
-                      <span>{c.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-              <fieldset>
-                <legend className="font-medium text-zinc-700 dark:text-zinc-300">
-                  Sample listings
-                </legend>
-                <div className="mt-2 flex max-h-40 flex-col gap-1 overflow-y-auto">
-                  {activeListings.length === 0 ? (
-                    <span className="text-zinc-500">List items first.</span>
-                  ) : (
-                    activeListings.map((l) => (
-                      <label key={l.id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          name="sample_listing_ids"
-                          value={l.id}
-                          className="rounded border-zinc-300 text-brand"
-                        />
-                        <span className="truncate">
-                          {l.title} · {formatPhp(l.price)}
-                        </span>
-                      </label>
-                    ))
-                  )}
-                </div>
-              </fieldset>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300">
-                Past live experience (optional)
-                <textarea
-                  name="experience_text"
-                  rows={3}
-                  className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={busy}
-                className="rounded-xl bg-brand px-4 py-2.5 font-semibold text-white hover:bg-brand-hover disabled:opacity-50"
-              >
-                {busy ? "Submitting…" : "Submit application"}
-              </button>
-            </form>
-          ) : null}
-        </section>
+        <LiveSellerApplicationPanel
+          userId={userId}
+          categories={categories}
+          activeListings={activeListings}
+          initialApplication={initialApplication}
+          isVerifiedLiveSeller={false}
+        />
       ) : null}
 
       {isVerifiedLiveSeller && !suspended ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getFacebookLoginScopes } from "@/lib/auth/facebook-oauth-scopes";
@@ -11,6 +11,10 @@ import { GoogleIcon } from "@/components/auth/google-icon";
 
 export function RegisterForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const rawNext = params.get("next") ?? "/";
+  const safeNext =
+    rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
   const [pending, setPending] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
   const [facebookPending, setFacebookPending] = useState(false);
@@ -19,7 +23,7 @@ export function RegisterForm() {
   async function signInWithGoogle() {
     const supabase = createClient();
     setGooglePending(true);
-    const redirectTo = `${window.location.origin}/auth/callback?next=/`;
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
@@ -33,7 +37,7 @@ export function RegisterForm() {
   async function signInWithFacebook() {
     const supabase = createClient();
     setFacebookPending(true);
-    const redirectTo = `${window.location.origin}/auth/callback?next=/`;
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "facebook",
       options: {
@@ -70,7 +74,7 @@ export function RegisterForm() {
       return;
     }
     toast.success("Check your email to confirm, or continue if confirmation is off.");
-    router.push("/");
+    router.push(safeNext);
     router.refresh();
   }
 
@@ -156,7 +160,10 @@ export function RegisterForm() {
 
       <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-brand hover:underline">
+        <Link
+          href={`/login?next=${encodeURIComponent(safeNext)}`}
+          className="font-medium text-brand hover:underline"
+        >
           Log in
         </Link>
       </p>

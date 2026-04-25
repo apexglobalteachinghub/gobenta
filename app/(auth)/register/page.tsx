@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { GobentaLogo } from "@/components/branding/gobenta-logo";
 import { RegisterForm } from "@/components/auth/register-form";
 
@@ -27,7 +28,9 @@ export default function RegisterPage() {
         <h1 className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
           Register
         </h1>
-        <RegisterForm />
+        <Suspense fallback={null}>
+          <RegisterForm />
+        </Suspense>
       </div>
     </div>
   );
