@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ListingPhotoFill } from "@/components/listing/listing-photo-fill";
 import { MapPin } from "lucide-react";
 import { formatPhp } from "@/lib/format";
 import type { ListingWithRelations } from "@/types/database";
@@ -46,12 +47,10 @@ export function ListingCard({ listing, lcpImage = false }: CardProps) {
     >
       <div className="relative aspect-[4/3] w-full bg-zinc-100 dark:bg-zinc-800">
         {showPhoto ? (
-          <Image
+          <ListingPhotoFill
             src={src}
             alt={listing.title}
-            fill
             priority={lcpImage}
-            quality={72}
             className="object-cover transition group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />

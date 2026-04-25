@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { ListingPhotoFill } from "@/components/listing/listing-photo-fill";
 import { cn } from "@/lib/cn";
 import {
   LISTING_IMAGE_PLACEHOLDER,
@@ -32,10 +33,9 @@ export function ListingGallery({
   return (
     <div className="space-y-3">
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
-        <Image
+        <ListingPhotoFill
           src={main}
           alt={title}
-          fill
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 60vw"
           priority
@@ -53,10 +53,9 @@ export function ListingGallery({
                 i === idx ? "ring-brand" : "ring-transparent"
               )}
             >
-              <Image
+              <ListingPhotoFill
                 src={normalizeListingImageUrl(im.image_url)}
                 alt=""
-                fill
                 className="object-cover"
                 sizes="64px"
               />
