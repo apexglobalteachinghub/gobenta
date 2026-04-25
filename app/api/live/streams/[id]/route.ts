@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeListingImageUrl } from "@/lib/images/listing-image-url";
 import { createClient } from "@/lib/supabase/server";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -70,9 +71,27 @@ export async function GET(_request: Request, ctx: Ctx) {
         title: string;
         price: number;
         user_id: string;
-        images: { id: string; image_url: string; sort_order: number }[];
+        images:
+          | { id: string; image_url: string; sort_order: number }
+          | { id: string; image_url: string; sort_order: number }[]
+          | null;
       };
-      listingsById[r.id] = r;
+      const rawImages = r.images;
+      const imageRows = Array.isArray(rawImages)
+        ? rawImages
+        : rawImages
+          ? [rawImages]
+          : [];
+      listingsById[r.id] = {
+        id: r.id,
+        title: r.title,
+        price: Number(r.price),
+        user_id: r.user_id,
+        images: imageRows.map((img) => ({
+          ...img,
+          image_url: normalizeListingImageUrl(img.image_url),
+        })),
+      };
     }
   }
 

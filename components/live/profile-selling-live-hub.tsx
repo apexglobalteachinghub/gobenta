@@ -65,14 +65,12 @@ export function ProfileSellingLiveHub({
   async function startLive(fd: FormData) {
     setBusy(true);
     const title = String(fd.get("title") ?? "").trim();
-    const playback_url = String(fd.get("playback_url") ?? "").trim();
     const listing_ids = fd.getAll("listing_ids").map(String);
     const res = await fetch("/api/live/streams/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
-        playback_url: playback_url || null,
         listing_ids,
         go_live_now: true,
       }),
@@ -177,14 +175,10 @@ export function ProfileSellingLiveHub({
                   className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
                 />
               </label>
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">
-                YouTube watch or embed URL (optional)
-                <input
-                  name="playback_url"
-                  placeholder="https://www.youtube.com/watch?v=…"
-                  className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-                />
-              </label>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Video is broadcast with your camera on the stream page (no
+                YouTube or other embed).
+              </p>
               <fieldset>
                 <legend className="font-medium text-zinc-700 dark:text-zinc-300">
                   Products in this live

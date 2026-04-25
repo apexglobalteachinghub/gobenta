@@ -157,8 +157,9 @@ export const faqItems: FaqAccordionItem[] = [
     answer: (
       <>
         Open <L href="/profile/selling">Selling</L>, use the <strong>Go live</strong>{" "}
-        section: set a stream title, optionally paste a YouTube watch or embed
-        URL for playback, choose which listings to feature, and start. You&apos;ll
+        section: set a stream title, choose which listings to feature, and start.
+        On the stream page, allow your camera and microphone to broadcast — no
+        YouTube or other embed needed. You&apos;ll
         be taken to your stream page where viewers can watch and claim items.
       </>
     ),

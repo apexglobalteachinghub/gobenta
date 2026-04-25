@@ -1,14 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Radio } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { ListingPhotoFill } from "@/components/listing/listing-photo-fill";
 import { VerifiedLiveSellerBadge } from "@/components/live/verified-live-seller-badge";
+import { LiveStreamChat } from "@/components/live/live-stream-chat";
+import { LiveWebRtcStage } from "@/components/live/live-webrtc-stage";
 import { LIVE_CLAIM_EXPIRY_SECONDS } from "@/lib/live/constants";
-import { toYoutubeEmbedUrl } from "@/lib/live/youtube-embed";
 import { formatPhp } from "@/lib/format";
 import { normalizeListingImageUrl } from "@/lib/images/listing-image-url";
 import { cn } from "@/lib/cn";
@@ -53,6 +54,7 @@ type StreamPayload = {
 export function LiveWatchClient({ streamId }: { streamId: string }) {
   const [data, setData] = useState<StreamPayload | null>(null);
   const [me, setMe] = useState<string | null>(null);
+  const [myName, setMyName] = useState("Member");
   const [loading, setLoading] = useState(true);
   const [claimBusy, setClaimBusy] = useState<string | null>(null);
 
@@ -75,6 +77,19 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
         data: { user },
       } = await supabase.auth.getUser();
       if (!cancelled) setMe(user?.id ?? null);
+      if (user?.id) {
+        const { data: row } = await supabase
+          .from("users")
+          .select("name")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!cancelled) {
+          const n = row?.name?.trim();
+          setMyName(n || user.email?.split("@")[0] || "Member");
+        }
+      } else if (!cancelled) {
+        setMyName("Member");
+      }
       await load();
       if (!cancelled) setLoading(false);
     })();
@@ -170,8 +185,11 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
   }
 
   const { stream, products, claims } = data;
-  const embed = toYoutubeEmbedUrl(stream.playback_url);
   const isSeller = me === stream.seller_id;
+  const chatName =
+    isSeller && stream.seller?.name
+      ? stream.seller.name
+      : myName;
   const nowMs = Date.now();
   const activePending = claims.filter(
     (c) =>
@@ -221,33 +239,20 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
       </div>
 
       <div className="aspect-video w-full overflow-hidden rounded-2xl border border-zinc-200 bg-black dark:border-zinc-800">
-        {embed ? (
-          <iframe
-            title="Live stream"
-            src={`${embed}?rel=0`}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-white">
-            <p className="text-sm text-zinc-300">
-              No embed URL yet. The seller may still be setting up — product
-              claims work below.
-            </p>
-            {stream.playback_url ? (
-              <a
-                href={stream.playback_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm font-medium text-brand-accent underline"
-              >
-                Open stream link
-              </a>
-            ) : null}
-          </div>
-        )}
+        <LiveWebRtcStage
+          streamId={streamId}
+          isSeller={isSeller}
+          userId={me}
+          isLive={stream.status === "live"}
+        />
       </div>
+
+      <LiveStreamChat
+        streamId={streamId}
+        isLive={stream.status === "live"}
+        senderName={chatName}
+        senderId={me}
+      />
 
       {stream.description ? (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -266,9 +271,7 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
             const img = [...(L.images ?? [])].sort(
               (a, b) => a.sort_order - b.sort_order
             )[0];
-            const src = img
-              ? normalizeListingImageUrl(img.image_url)
-              : "/placeholder-listing.svg";
+            const src = normalizeListingImageUrl(img?.image_url);
             const c = claimByListing.get(L.id);
             const timerActive =
               c?.status === "pending" &&
@@ -284,10 +287,9 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
                 )}
               >
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                  <Image
+                  <ListingPhotoFill
                     src={src}
-                    alt=""
-                    fill
+                    alt={L.title}
                     className="object-cover"
                     sizes="80px"
                   />
