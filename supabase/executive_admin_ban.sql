@@ -1,18 +1,11 @@
--- Add buyer/seller role to profiles (run once if you already applied schema.sql without this column)
-
-alter table public.users
-  add column if not exists role text not null default 'buyer'
-  check (role in ('buyer', 'seller'));
-
-alter table public.users
-  add column if not exists is_executive boolean not null default false;
+-- Executive tooling: account suspension (run once in Supabase SQL editor).
+-- Preserves banned_at when auth metadata sync runs (handle_new_user).
 
 alter table public.users
   add column if not exists banned_at timestamptz;
 
-comment on column public.users.role is 'Account intent: buyer or seller (set at registration).';
-comment on column public.users.is_executive is 'Internal dashboard access; set via supabase/executive.sql promote snippet.';
-comment on column public.users.banned_at is 'When set, middleware blocks the session until cleared.';
+comment on column public.users.banned_at is
+  'When set, middleware blocks the session until cleared (executive API).';
 
 create or replace function public.handle_new_user ()
 returns trigger
@@ -68,11 +61,3 @@ begin
   return new;
 end;
 $$;
-
-drop trigger if exists on_auth_user_updated on auth.users;
-
-create trigger on_auth_user_updated
-  after update on auth.users
-  for each row
-  when (old.raw_user_meta_data is distinct from new.raw_user_meta_data)
-  execute function public.handle_new_user ();

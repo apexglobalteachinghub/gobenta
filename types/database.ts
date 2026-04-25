@@ -19,6 +19,8 @@ export type UserRow = {
   role: UserRole;
   /** Set only in Supabase; gates /executive. */
   is_executive?: boolean;
+  /** When set, the account is blocked (executive tooling + middleware). */
+  banned_at?: string | null;
   created_at: string;
   phone?: string | null;
   address_public?: string | null;

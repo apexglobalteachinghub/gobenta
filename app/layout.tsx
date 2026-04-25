@@ -4,8 +4,7 @@ import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { MetaPixelPageView } from "@/components/analytics/meta-pixel-pageview";
-import { AnnouncementBar } from "@/components/layout/announcement-bar";
-import { SiteFooter } from "@/components/layout/site-footer";
+import { ConditionalSiteChrome } from "@/components/layout/conditional-site-chrome";
 import { getMetaPixelId } from "@/lib/analytics/meta-pixel-id";
 import { AuthUrlErrorCleaner } from "@/components/auth/auth-url-error-cleaner";
 import { SiteVisitBeacon } from "@/components/analytics/site-visit-beacon";
@@ -129,11 +128,7 @@ fbq('track', 'PageView');
           <Suspense fallback={null}>
             <MetaPixelPageView />
           </Suspense>
-          <div className="flex min-h-full flex-col">
-            <AnnouncementBar />
-            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-            <SiteFooter />
-          </div>
+          <ConditionalSiteChrome>{children}</ConditionalSiteChrome>
         </AppProviders>
       </body>
     </html>

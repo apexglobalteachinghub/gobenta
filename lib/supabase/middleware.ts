@@ -9,6 +9,10 @@ const PROTECTED_PREFIXES = [
   "/saved",
 ];
 
+function isAccountSuspendedExemptPath(path: string) {
+  return path === "/account-suspended" || path === "/auth/callback";
+}
+
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
@@ -60,6 +64,27 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (user && !isAccountSuspendedExemptPath(path)) {
+    const { data: suspension } = await supabase
+      .from("users")
+      .select("banned_at")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (suspension?.banned_at) {
+      if (path.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Account suspended" },
+          { status: 403 }
+        );
+      }
+      const url = request.nextUrl.clone();
+      url.pathname = "/account-suspended";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+  }
 
   const isExecutiveLogin = path === "/executive/login";
   const isExecutiveArea = path.startsWith("/executive");

@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { canonicalListingImagePublicUrl } from "@/lib/images/listing-image-url";
+import {
+  LISTING_IMAGE_MAX_COUNT,
+  LISTING_IMAGE_MAX_EDGE_PX,
+  LISTING_IMAGE_MAX_INPUT_BYTES,
+  processRasterImageForUpload,
+  RASTER_IMAGE_ACCEPT,
+  safeStorageFileName,
+  validateRasterImageFile,
+} from "@/lib/images/raster-image-upload";
 import type { CategoryRow, ListingCondition, PaymentOption } from "@/types/database";
 
 type Props = {
@@ -17,10 +26,6 @@ const PAY_OPTIONS: { key: PaymentOption; label: string }[] = [
   { key: "maya", label: "Maya" },
   { key: "cod", label: "Cash on delivery (COD)" },
 ];
-
-function safeFileName(name: string) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
 
 export function CreateListingForm({ mainCategories, allCategories }: Props) {
   const router = useRouter();
@@ -66,7 +71,7 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
     const imageInput = form.querySelector(
       'input[name="images"]'
     ) as HTMLInputElement | null;
-    const files = imageInput?.files?.length
+    const rawFiles = imageInput?.files?.length
       ? Array.from(imageInput.files).filter((f) => f.size > 0)
       : [];
 
@@ -82,6 +87,28 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
 
     setPending(true);
     try {
+      const processedFiles: File[] = [];
+      for (const file of rawFiles.slice(0, LISTING_IMAGE_MAX_COUNT)) {
+        const check = validateRasterImageFile(file, {
+          maxBytes: LISTING_IMAGE_MAX_INPUT_BYTES,
+        });
+        if (!check.ok) {
+          toast.error(check.message);
+          return;
+        }
+        try {
+          processedFiles.push(
+            await processRasterImageForUpload(file, "listing")
+          );
+        } catch (err) {
+          console.error(err);
+          toast.error(
+            `Could not process “${file.name}”. Try a different photo (JPG/PNG/WebP).`
+          );
+          return;
+        }
+      }
+
       const payment_options: PaymentOption[] = [...payments];
       if (pasabuy) payment_options.push("pasabuy");
 
@@ -113,11 +140,14 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
       }
 
       let sort = 0;
-      for (const file of files.slice(0, 12)) {
-        const path = `${user.id}/${listing.id}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+      for (const file of processedFiles) {
+        const path = `${user.id}/${listing.id}/${crypto.randomUUID()}-${safeStorageFileName(file.name)}`;
         const { error: upErr } = await supabase.storage
           .from("listing-images")
-          .upload(path, file, { upsert: false });
+          .upload(path, file, {
+            upsert: false,
+            contentType: file.type || "image/jpeg",
+          });
         if (upErr) {
           console.error(upErr);
           toast.error("Image upload failed: " + upErr.message);
@@ -324,20 +354,24 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
 
       <div>
         <span className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Photos (up to 12)
+          Photos (up to {LISTING_IMAGE_MAX_COUNT})
         </span>
         <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-zinc-300 bg-zinc-100 px-4 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm transition hover:bg-zinc-200/90 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">
           Choose photos
           <input
             name="images"
             type="file"
-            accept="image/*"
+            accept={RASTER_IMAGE_ACCEPT}
             multiple
             className="sr-only"
           />
         </label>
-        <p className="mt-1.5 text-xs text-zinc-500">
-          JPG, PNG, WebP — up to 12 images
+        <p className="mt-1.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+          JPG, PNG, WebP, GIF, or HEIC — max{" "}
+          {Math.round(LISTING_IMAGE_MAX_INPUT_BYTES / (1024 * 1024))} MB each
+          before processing. We resize (long edge {LISTING_IMAGE_MAX_EDGE_PX}px) and
+          compress so each stored photo stays small (typically under ~1.2 MB) for
+          fast listing pages.
         </p>
       </div>
 
@@ -346,7 +380,7 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
         disabled={pending}
         className="w-full rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
       >
-        {pending ? "Publishing…" : "Publish listing"}
+        {pending ? "Optimizing & publishing…" : "Publish listing"}
       </button>
     </form>
   );

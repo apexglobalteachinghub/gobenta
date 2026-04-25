@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ComponentType } from "react";
 import {
   Activity,
   Banknote,
@@ -12,8 +13,8 @@ import {
 } from "@/components/executive/executive-charts";
 import { ExecutiveDashboardClient } from "@/components/executive/executive-dashboard-client";
 import { ExecutivePanel } from "@/components/executive/executive-panel";
-import { ExecutiveShell } from "@/components/executive/executive-shell";
 import { fetchExecutiveDashboard } from "@/lib/executive/dashboard";
+import { getExecutiveDashboardGreeting } from "@/lib/executive/dashboard-greeting";
 import { formatPaymentOption } from "@/lib/executive/payment-label";
 import { cn } from "@/lib/cn";
 
@@ -72,26 +73,37 @@ function RankedList({
 }
 
 export default async function ExecutiveDashboardPage() {
-  const data = await fetchExecutiveDashboard();
+  const [data, greeting] = await Promise.all([
+    fetchExecutiveDashboard(),
+    getExecutiveDashboardGreeting(),
+  ]);
 
   if (!data) {
     return (
-      <ExecutiveShell>
-        <div className="rounded-2xl border border-red-200/90 bg-red-50/90 p-8 text-red-900 shadow-sm dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-100">
-          <h2 className="text-lg font-semibold">Dashboard unavailable</h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed">
-            The executive RPC returned no data. Run{" "}
-            <code className="rounded-md bg-red-100 px-1.5 py-0.5 text-xs dark:bg-red-900/60">
-              supabase/executive.sql
-            </code>{" "}
-            in the Supabase SQL editor and confirm your account has{" "}
-            <code className="rounded-md bg-red-100 px-1.5 py-0.5 text-xs dark:bg-red-900/60">
-              is_executive = true
-            </code>
-            .
+      <div className="space-y-6">
+        {greeting ? (
+          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            {greeting.phrase},{" "}
+            <span className="text-zinc-900 dark:text-zinc-100">
+              {greeting.displayName}
+            </span>
           </p>
+        ) : null}
+        <div className="rounded-2xl border border-red-200/90 bg-red-50/90 p-8 text-red-900 shadow-sm dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-100">
+        <h2 className="text-lg font-semibold">Dashboard unavailable</h2>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed">
+          The executive RPC returned no data. Run{" "}
+          <code className="rounded-md bg-red-100 px-1.5 py-0.5 text-xs dark:bg-red-900/60">
+            supabase/executive.sql
+          </code>{" "}
+          in the Supabase SQL editor and confirm your account has{" "}
+          <code className="rounded-md bg-red-100 px-1.5 py-0.5 text-xs dark:bg-red-900/60">
+            is_executive = true
+          </code>
+          .
+        </p>
         </div>
-      </ExecutiveShell>
+      </div>
     );
   }
 
@@ -112,8 +124,16 @@ export default async function ExecutiveDashboardPage() {
   }));
 
   return (
-    <ExecutiveShell>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <>
+      {greeting ? (
+        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          {greeting.phrase},{" "}
+          <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+            {greeting.displayName}
+          </span>
+        </p>
+      ) : null}
+      <div className="mt-2 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
             Overview
@@ -231,7 +251,7 @@ export default async function ExecutiveDashboardPage() {
 
         <ExecutiveDashboardClient daily={data.daily} timezone={data.timezone} />
       </div>
-    </ExecutiveShell>
+    </>
   );
 }
 
@@ -242,7 +262,7 @@ function StatCard({
   hint,
   accent,
 }: {
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
   label: string;
   value: string | number;
   hint?: string;

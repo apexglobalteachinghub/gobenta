@@ -16,6 +16,9 @@ function safeNextPath(raw: string | null): string {
   return raw;
 }
 
+const inputClass =
+  "w-full rounded-xl border border-zinc-200 bg-zinc-50/60 px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm transition placeholder:text-zinc-400 focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20";
+
 export function ExecutiveLoginForm() {
   const router = useRouter();
   const params = useSearchParams();
@@ -47,12 +50,17 @@ export function ExecutiveLoginForm() {
     }
     const { data: row } = await supabase
       .from("users")
-      .select("is_executive")
+      .select("is_executive, banned_at")
       .eq("id", user.id)
       .maybeSingle();
     if (!row?.is_executive) {
       await supabase.auth.signOut({ scope: "global" });
       toast.error("This login is reserved for executive accounts.");
+      return false;
+    }
+    if (row.banned_at) {
+      await supabase.auth.signOut({ scope: "global" });
+      toast.error("This executive account is suspended.");
       return false;
     }
     return true;
@@ -109,13 +117,13 @@ export function ExecutiveLoginForm() {
   }
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="mt-7 space-y-6">
       <div className="flex flex-col gap-3">
         <button
           type="button"
           onClick={() => void signInWithGoogle()}
           disabled={socialPending}
-          className="flex w-full items-center justify-center gap-3 rounded-full border border-zinc-200 bg-white py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-zinc-200/90 bg-white py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:shadow-md disabled:opacity-60"
         >
           <GoogleIcon className="h-5 w-5" />
           {googlePending ? "Redirecting…" : "Continue with Google"}
@@ -124,7 +132,7 @@ export function ExecutiveLoginForm() {
           type="button"
           onClick={() => void signInWithFacebook()}
           disabled={socialPending}
-          className="flex w-full items-center justify-center gap-3 rounded-full border border-zinc-200 bg-white py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-zinc-200/90 bg-white py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:shadow-md disabled:opacity-60"
         >
           <FacebookIcon className="h-5 w-5 shrink-0" />
           {facebookPending ? "Redirecting…" : "Continue with Facebook"}
@@ -133,53 +141,62 @@ export function ExecutiveLoginForm() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-zinc-200 dark:border-zinc-700" />
+          <span className="w-full border-t border-zinc-200" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-zinc-500 dark:bg-zinc-900">
-            Or use email
-          </span>
+        <div className="relative flex justify-center text-[11px] font-semibold uppercase tracking-[0.14em]">
+          <span className="bg-white px-3 text-zinc-400">Or email</span>
         </div>
       </div>
 
       <form onSubmit={(e) => void onSubmit(e)} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <label
+            htmlFor="exec-email"
+            className="mb-1.5 block text-sm font-medium text-zinc-700"
+          >
             Email
           </label>
           <input
+            id="exec-email"
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            className={inputClass}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <label
+            htmlFor="exec-password"
+            className="mb-1.5 block text-sm font-medium text-zinc-700"
+          >
             Password
           </label>
           <input
+            id="exec-password"
             name="password"
             type="password"
             required
             autoComplete="current-password"
-            className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            className={inputClass}
           />
         </div>
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-full bg-zinc-900 py-3 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+          className="w-full rounded-xl bg-brand py-3 text-sm font-semibold text-white shadow-sm shadow-brand/25 transition hover:bg-brand-hover disabled:opacity-60"
         >
-          {pending ? "Signing in…" : "Sign in to executive console"}
+          {pending ? "Signing in…" : "Sign in to console"}
         </button>
       </form>
 
-      <p className="text-center text-xs text-zinc-500 dark:text-zinc-400">
-        This page is not linked on the public site. Need the marketplace?{" "}
-        <Link href="/login" className="font-medium text-brand hover:underline">
-          Member login
+      <p className="text-center text-xs text-zinc-500">
+        Not listed on the public site.{" "}
+        <Link
+          href="/"
+          className="font-semibold text-brand hover:text-brand-hover hover:underline"
+        >
+          Back to marketplace
         </Link>
       </p>
     </div>

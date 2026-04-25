@@ -10,10 +10,12 @@ create table if not exists public.users (
   avatar_url text,
   role text not null default 'buyer' check (role in ('buyer', 'seller')),
   is_executive boolean not null default false,
+  banned_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 comment on table public.users is 'App profile; rows created on signup via trigger.';
+comment on column public.users.banned_at is 'When set, middleware blocks the session (executive tooling).';
 
 -- Auto-create profile when a new auth user registers
 create or replace function public.handle_new_user ()
@@ -65,7 +67,8 @@ begin
           when excluded.role in ('buyer', 'seller') then excluded.role
           else public.users.role
         end,
-        is_executive = public.users.is_executive;
+        is_executive = public.users.is_executive,
+        banned_at = public.users.banned_at;
   return new;
 end;
 $$;

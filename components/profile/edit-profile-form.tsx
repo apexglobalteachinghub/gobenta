@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-
-function safeFileName(name: string) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
+import {
+  AVATAR_IMAGE_MAX_INPUT_BYTES,
+  processRasterImageForUpload,
+  RASTER_IMAGE_ACCEPT,
+  safeStorageFileName,
+  validateRasterImageFile,
+} from "@/lib/images/raster-image-upload";
 
 export type ProfileFormInitial = {
   name: string;
@@ -69,6 +72,26 @@ export function EditProfileForm({ initial }: { initial: ProfileFormInitial }) {
   async function onAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !file.size) return;
+
+    const check = validateRasterImageFile(file, {
+      maxBytes: AVATAR_IMAGE_MAX_INPUT_BYTES,
+    });
+    if (!check.ok) {
+      toast.error(check.message);
+      e.target.value = "";
+      return;
+    }
+
+    let processed: File;
+    try {
+      processed = await processRasterImageForUpload(file, "avatar");
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not process this photo. Try JPG or PNG.");
+      e.target.value = "";
+      return;
+    }
+
     setUploading(true);
     const supabase = createClient();
     const {
@@ -79,16 +102,14 @@ export function EditProfileForm({ initial }: { initial: ProfileFormInitial }) {
       setUploading(false);
       return;
     }
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    if (!["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) {
-      toast.error("Use JPG, PNG, WebP, or GIF.");
-      setUploading(false);
-      return;
-    }
-    const path = `${user.id}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+    const path = `${user.id}/${crypto.randomUUID()}-${safeStorageFileName(processed.name)}`;
     const { error: upErr } = await supabase.storage
       .from("avatars")
-      .upload(path, file, { upsert: false, cacheControl: "3600" });
+      .upload(path, processed, {
+        upsert: false,
+        cacheControl: "3600",
+        contentType: processed.type || "image/jpeg",
+      });
     if (upErr) {
       toast.error(upErr.message);
       setUploading(false);
@@ -130,7 +151,7 @@ export function EditProfileForm({ initial }: { initial: ProfileFormInitial }) {
           {uploading ? "Uploading…" : "Change photo"}
           <input
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept={RASTER_IMAGE_ACCEPT}
             className="sr-only"
             onChange={(e) => void onAvatarChange(e)}
             disabled={uploading}
