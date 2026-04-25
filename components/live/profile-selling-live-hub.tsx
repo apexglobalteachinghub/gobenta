@@ -83,7 +83,7 @@ export function ProfileSellingLiveHub({
     }
     toast.success("You are live!");
     if (json.id) {
-      window.location.href = `/live/${json.id}`;
+      window.location.href = `/live/${json.id}#live-video-stage`;
     }
   }
 

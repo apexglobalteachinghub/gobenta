@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Loader2, Radio } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -51,12 +58,68 @@ type StreamPayload = {
   }[];
 };
 
+type MarkedBuyer = { userId: string; name: string };
+
+function markedBuyersStorageKey(streamId: string) {
+  return `gobenta-live-marked-buyers-${streamId}`;
+}
+
 export function LiveWatchClient({ streamId }: { streamId: string }) {
   const [data, setData] = useState<StreamPayload | null>(null);
   const [me, setMe] = useState<string | null>(null);
   const [myName, setMyName] = useState("Member");
   const [loading, setLoading] = useState(true);
   const [claimBusy, setClaimBusy] = useState<string | null>(null);
+  const [markedBuyers, setMarkedBuyers] = useState<MarkedBuyer[]>([]);
+  const videoAnchorRef = useRef<HTMLDivElement>(null);
+  const didScrollToVideoRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    didScrollToVideoRef.current = false;
+  }, [streamId]);
+
+  useLayoutEffect(() => {
+    if (loading || !data?.stream) return;
+    if (data.stream.status !== "live") return;
+    if (didScrollToVideoRef.current) return;
+    didScrollToVideoRef.current = true;
+    const raf = window.requestAnimationFrame(() => {
+      videoAnchorRef.current?.scrollIntoView({
+        block: "start",
+        behavior: "auto",
+      });
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [loading, data?.stream?.id, data?.stream?.status]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(markedBuyersStorageKey(streamId));
+      if (!raw) {
+        setMarkedBuyers([]);
+        return;
+      }
+      const parsed = JSON.parse(raw) as MarkedBuyer[];
+      if (Array.isArray(parsed)) {
+        setMarkedBuyers(
+          parsed.filter(
+            (x) =>
+              x &&
+              typeof x.userId === "string" &&
+              typeof x.name === "string"
+          )
+        );
+      }
+    } catch {
+      setMarkedBuyers([]);
+    }
+  }, [streamId]);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/live/streams/${streamId}`);
@@ -190,6 +253,52 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
     isSeller && stream.seller?.name
       ? stream.seller.name
       : myName;
+
+  const markedBuyerIds = useMemo(
+    () => new Set(markedBuyers.map((b) => b.userId)),
+    [markedBuyers]
+  );
+
+  const anchorListingId =
+    products.find((p) => p.listing_id)?.listing_id ??
+    stream.pinned_listing_id ??
+    null;
+
+  function markBuyer(userId: string, name: string) {
+    if (!isSeller || userId === stream.seller_id) return;
+    setMarkedBuyers((prev) => {
+      if (prev.some((x) => x.userId === userId)) {
+        toast.info("Already in your buyer list");
+        return prev;
+      }
+      const next = [...prev, { userId, name }];
+      try {
+        localStorage.setItem(
+          markedBuyersStorageKey(streamId),
+          JSON.stringify(next)
+        );
+      } catch {
+        /* ignore */
+      }
+      toast.success("Marked as buyer — message them below");
+      return next;
+    });
+  }
+
+  function unmarkBuyer(userId: string) {
+    setMarkedBuyers((prev) => {
+      const next = prev.filter((b) => b.userId !== userId);
+      try {
+        localStorage.setItem(
+          markedBuyersStorageKey(streamId),
+          JSON.stringify(next)
+        );
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
   const nowMs = Date.now();
   const activePending = claims.filter(
     (c) =>
@@ -238,7 +347,11 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
         ) : null}
       </div>
 
-      <div className="aspect-video w-full overflow-hidden rounded-2xl border border-zinc-200 bg-black dark:border-zinc-800">
+      <div
+        ref={videoAnchorRef}
+        id="live-video-stage"
+        className="scroll-mt-28 aspect-video w-full overflow-hidden rounded-2xl border border-zinc-200 bg-black dark:border-zinc-800"
+      >
         <LiveWebRtcStage
           streamId={streamId}
           isSeller={isSeller}
@@ -252,6 +365,10 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
         isLive={stream.status === "live"}
         senderName={chatName}
         senderId={me}
+        isSeller={isSeller}
+        streamSellerId={stream.seller_id}
+        markedBuyerIds={markedBuyerIds}
+        onMarkBuyer={markBuyer}
       />
 
       {stream.description ? (
@@ -344,6 +461,54 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
           })}
         </ul>
       </section>
+
+      {isSeller && stream.status === "live" && markedBuyers.length > 0 ? (
+        <section className="rounded-2xl border border-emerald-200/80 bg-emerald-50/50 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+            Marked buyers
+          </h2>
+          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+            Viewers you tagged from live chat. Open Messages using a listing
+            thread to follow up.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {markedBuyers.map((b) => (
+              <li
+                key={b.userId}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-200/60 bg-white px-3 py-2 text-sm dark:border-emerald-900/40 dark:bg-zinc-900/60"
+              >
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {b.name}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {anchorListingId ? (
+                    <Link
+                      href={`/messages/${anchorListingId}/${b.userId}`}
+                      className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover"
+                    >
+                      Message
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/u/${b.userId}`}
+                      className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      View profile
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => unmarkBuyer(b.userId)}
+                    className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -29,6 +29,26 @@ export async function GET(_request: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const streamRow = stream as Record<string, unknown> & {
+    seller?: {
+      id: string;
+      name: string;
+      avatar_url: string | null;
+      is_verified_live_seller?: boolean;
+    } | null;
+  };
+  const streamOut = {
+    ...streamRow,
+    seller: streamRow.seller
+      ? {
+          ...streamRow.seller,
+          avatar_url: streamRow.seller.avatar_url
+            ? normalizeListingImageUrl(streamRow.seller.avatar_url)
+            : null,
+        }
+      : streamRow.seller,
+  };
+
   const { data: links, error: pErr } = await supabase
     .from("live_stream_listings")
     .select("listing_id, slot_code, sort_order")
@@ -111,7 +131,7 @@ export async function GET(_request: Request, ctx: Ctx) {
     .order("claimed_at", { ascending: false });
 
   return NextResponse.json({
-    stream,
+    stream: streamOut,
     products: products ?? [],
     claims: claims ?? [],
   });

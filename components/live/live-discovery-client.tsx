@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Radio, Loader2 } from "lucide-react";
 import { VerifiedLiveSellerBadge } from "@/components/live/verified-live-seller-badge";
+import { UserAvatarCircle } from "@/components/user/user-avatar-circle";
 import { cn } from "@/lib/cn";
 
 type StreamRow = {
@@ -135,7 +135,6 @@ function StreamCard({
   live: boolean;
 }) {
   const seller = stream.seller;
-  const initial = (seller?.name ?? "?").slice(0, 1).toUpperCase();
 
   return (
     <div
@@ -147,21 +146,19 @@ function StreamCard({
       )}
     >
       <div className="flex gap-3 p-4">
-        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
-          {seller?.avatar_url ? (
-            <Image
-              src={seller.avatar_url}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="56px"
-            />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center text-lg font-bold text-zinc-500">
-              {initial}
-            </span>
-          )}
-        </div>
+        {seller ? (
+          <UserAvatarCircle
+            userId={seller.id}
+            name={seller.name ?? "Seller"}
+            avatarUrl={seller.avatar_url}
+            sizePx={56}
+            ringClassName="ring-1 ring-zinc-200 dark:ring-zinc-600"
+          />
+        ) : (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-lg font-bold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800">
+            ?
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">

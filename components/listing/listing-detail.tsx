@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin, MessageCircle, Tag } from "lucide-react";
 import { formatPhp } from "@/lib/format";
@@ -11,6 +10,7 @@ import { CompleteTransactionPanel } from "@/components/listing/complete-transact
 import { ListingReviewPanel } from "@/components/listing/listing-review-panel";
 import { StarDisplay } from "@/components/listing/star-display";
 import { VerifiedLiveSellerBadge } from "@/components/live/verified-live-seller-badge";
+import { UserAvatarCircle } from "@/components/user/user-avatar-circle";
 
 type Props = {
   listing: ListingWithRelations;
@@ -121,26 +121,14 @@ export function ListingDetail({
             Seller
           </p>
           <div className="mt-2 flex items-center gap-3">
-            {seller?.avatar_url ? (
-              <Link
-                href={`/u/${seller.id}`}
-                className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-white dark:ring-zinc-900"
-              >
-                <Image
-                  src={seller.avatar_url}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 object-cover"
-                />
-              </Link>
-            ) : seller ? (
-              <Link
-                href={`/u/${seller.id}`}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-lg font-bold text-white"
-              >
-                {(seller.name ?? "?").slice(0, 1).toUpperCase()}
-              </Link>
+            {seller ? (
+              <UserAvatarCircle
+                userId={seller.id}
+                name={seller.name ?? "Seller"}
+                avatarUrl={seller.avatar_url}
+                sizePx={48}
+                ringClassName="ring-2 ring-white dark:ring-zinc-900"
+              />
             ) : (
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-lg font-bold text-white">
                 ?
