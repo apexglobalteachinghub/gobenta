@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { canonicalListingImagePublicUrl } from "@/lib/images/listing-image-url";
 import type { CategoryRow, ListingCondition, PaymentOption } from "@/types/database";
 
 type Props = {
@@ -127,7 +128,7 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
         } = supabase.storage.from("listing-images").getPublicUrl(path);
         await supabase.from("images").insert({
           listing_id: listing.id,
-          image_url: publicUrl,
+          image_url: canonicalListingImagePublicUrl(publicUrl),
           sort_order: sort++,
         });
       }

@@ -3,6 +3,10 @@
 import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import {
+  LISTING_IMAGE_PLACEHOLDER,
+  normalizeListingImageUrl,
+} from "@/lib/images/listing-image-url";
 
 export function ListingGallery({
   images,
@@ -13,7 +17,9 @@ export function ListingGallery({
 }) {
   const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
   const [idx, setIdx] = useState(0);
-  const main = sorted[idx]?.image_url ?? "/placeholder-listing.svg";
+  const main = sorted[idx]?.image_url
+    ? normalizeListingImageUrl(sorted[idx].image_url)
+    : LISTING_IMAGE_PLACEHOLDER;
 
   if (!sorted.length) {
     return (
@@ -48,7 +54,7 @@ export function ListingGallery({
               )}
             >
               <Image
-                src={im.image_url}
+                src={normalizeListingImageUrl(im.image_url)}
                 alt=""
                 fill
                 className="object-cover"

@@ -6,6 +6,10 @@ import type { ListingWithRelations } from "@/types/database";
 import { PaymentBadges } from "@/components/listing/payment-badges";
 import { StarDisplay } from "@/components/listing/star-display";
 import { cn } from "@/lib/cn";
+import {
+  LISTING_IMAGE_PLACEHOLDER,
+  normalizeListingImageUrl,
+} from "@/lib/images/listing-image-url";
 
 function pickImage(listing: ListingWithRelations) {
   const sorted = [...(listing.images ?? [])].sort(
@@ -21,7 +25,9 @@ type CardProps = {
 };
 
 export function ListingCard({ listing, lcpImage = false }: CardProps) {
-  const src = pickImage(listing);
+  const raw = pickImage(listing);
+  const src = raw ? normalizeListingImageUrl(raw) : null;
+  const showPhoto = src && src !== LISTING_IMAGE_PLACEHOLDER;
   const sellerRating = listing.sellerRating ?? { avg: 0, count: 0 };
   const sold = !!listing.transaction_completed_at;
   const loc =
@@ -39,7 +45,7 @@ export function ListingCard({ listing, lcpImage = false }: CardProps) {
       className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
     >
       <div className="relative aspect-[4/3] w-full bg-zinc-100 dark:bg-zinc-800">
-        {src ? (
+        {showPhoto ? (
           <Image
             src={src}
             alt={listing.title}
