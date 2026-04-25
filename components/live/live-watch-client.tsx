@@ -181,6 +181,11 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
     };
   }, [streamId, load]);
 
+  const markedBuyerIds = useMemo(
+    () => new Set(markedBuyers.map((b) => b.userId)),
+    [markedBuyers]
+  );
+
   async function claim(listingId: string) {
     if (!me) {
       toast.error("Log in to claim");
@@ -253,11 +258,6 @@ export function LiveWatchClient({ streamId }: { streamId: string }) {
     isSeller && stream.seller?.name
       ? stream.seller.name
       : myName;
-
-  const markedBuyerIds = useMemo(
-    () => new Set(markedBuyers.map((b) => b.userId)),
-    [markedBuyers]
-  );
 
   const anchorListingId =
     products.find((p) => p.listing_id)?.listing_id ??
