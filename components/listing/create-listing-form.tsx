@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -33,6 +33,24 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
   const [categoryId, setCategoryId] = useState(mainCategories[0]?.id ?? "");
   const [subcategoryId, setSubcategoryId] = useState("");
   const [payments, setPayments] = useState<PaymentOption[]>(["cod"]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    return () => {
+      imagePreviewUrls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [imagePreviewUrls]);
+
+  function onImagesPicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    setImagePreviewUrls((prev) => {
+      prev.forEach((u) => URL.revokeObjectURL(u));
+      if (!files?.length) return [];
+      return Array.from(files)
+        .slice(0, LISTING_IMAGE_MAX_COUNT)
+        .map((file) => URL.createObjectURL(file));
+    });
+  }
 
   const subs = useMemo(
     () => allCategories.filter((c) => c.parent_id === categoryId),
@@ -364,8 +382,29 @@ export function CreateListingForm({ mainCategories, allCategories }: Props) {
             accept={RASTER_IMAGE_ACCEPT}
             multiple
             className="sr-only"
+            onChange={onImagesPicked}
           />
         </label>
+        {imagePreviewUrls.length > 0 ? (
+          <ul
+            className="mt-3 flex flex-wrap gap-2"
+            aria-label="Selected photos preview"
+          >
+            {imagePreviewUrls.map((url) => (
+              <li
+                key={url}
+                className="h-16 w-16 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- local blob previews */}
+                <img
+                  src={url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <p className="mt-1.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
           JPG, PNG, WebP, GIF, or HEIC — max{" "}
           {Math.round(LISTING_IMAGE_MAX_INPUT_BYTES / (1024 * 1024))} MB each

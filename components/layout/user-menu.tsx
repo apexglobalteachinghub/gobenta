@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   Store,
   User,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -24,6 +25,11 @@ type Props = {
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
+  /** Approved live seller — show Go live in the nav */
+  isVerifiedLiveSeller?: boolean;
+  liveSellerSuspendedUntil?: string | null;
+  /** Current live stream id when status is live */
+  activeLiveStreamId?: string | null;
 };
 
 function MenuAvatarChip({
@@ -55,7 +61,15 @@ function MenuAvatarChip({
   );
 }
 
-export function UserMenu({ userId, email, name, avatarUrl }: Props) {
+export function UserMenu({
+  userId,
+  email,
+  name,
+  avatarUrl,
+  isVerifiedLiveSeller = false,
+  liveSellerSuspendedUntil = null,
+  activeLiveStreamId = null,
+}: Props) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const inbox = useInboxUnread(userId);
@@ -94,6 +108,11 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
   const itemClass =
     "flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800";
 
+  const liveSuspended =
+    liveSellerSuspendedUntil &&
+    new Date(liveSellerSuspendedUntil).getTime() > Date.now();
+  const showGoLiveCta = isVerifiedLiveSeller && !liveSuspended;
+
   return (
     <div className="flex items-center gap-1 sm:gap-2">
       <NavNotificationBell
@@ -130,11 +149,27 @@ export function UserMenu({ userId, email, name, avatarUrl }: Props) {
       <Link
         href="/live"
         className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 sm:h-9"
-        aria-label="Live selling"
+        aria-label="Watch live streams"
       >
         <Radio className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
         Live
       </Link>
+      {showGoLiveCta ? (
+        <Link
+          href={
+            activeLiveStreamId
+              ? `/live/${activeLiveStreamId}`
+              : "/profile/selling#go-live"
+          }
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-red-600 px-3.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 sm:h-9"
+          aria-label={
+            activeLiveStreamId ? "Open your live stream" : "Go live — start selling"
+          }
+        >
+          <Video className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+          {activeLiveStreamId ? "Open live" : "Go live"}
+        </Link>
+      ) : null}
       <Link
         href="/listing/new"
         className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-brand px-4 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:ring-white/10 sm:h-9 sm:px-3.5"

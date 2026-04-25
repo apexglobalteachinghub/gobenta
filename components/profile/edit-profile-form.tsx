@@ -23,6 +23,36 @@ export type ProfileFormInitial = {
   bio: string;
 };
 
+function ProfileAvatarPreview({
+  avatarUrl,
+  name,
+}: {
+  avatarUrl: string | null;
+  name: string;
+}) {
+  const [broken, setBroken] = useState(false);
+  const initial = (name.trim() || "?").slice(0, 1).toUpperCase();
+
+  if (!avatarUrl || broken) {
+    return (
+      <span className="flex h-full w-full items-center justify-center rounded-full bg-brand text-2xl font-bold text-white">
+        {initial}
+      </span>
+    );
+  }
+
+  return (
+    <Image
+      src={avatarUrl}
+      alt=""
+      fill
+      className="object-cover"
+      sizes="80px"
+      onError={() => setBroken(true)}
+    />
+  );
+}
+
 export function EditProfileForm({ initial }: { initial: ProfileFormInitial }) {
   const router = useRouter();
   const [name, setName] = useState(initial.name);
@@ -133,19 +163,11 @@ export function EditProfileForm({ initial }: { initial: ProfileFormInitial }) {
     >
       <div className="flex flex-wrap items-center gap-4">
         <div className="relative h-20 w-20 overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
-          {avatarUrl ? (
-            <Image
-              src={avatarUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="80px"
-            />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-zinc-500">
-              {(name || "?").slice(0, 1).toUpperCase()}
-            </span>
-          )}
+          <ProfileAvatarPreview
+            key={avatarUrl ?? "no-photo"}
+            avatarUrl={avatarUrl}
+            name={name}
+          />
         </div>
         <label className="inline-flex cursor-pointer rounded-lg border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">
           {uploading ? "Uploading…" : "Change photo"}

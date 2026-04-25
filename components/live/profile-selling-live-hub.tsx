@@ -148,7 +148,7 @@ export function ProfileSellingLiveHub({
       ) : null}
 
       {isVerifiedLiveSeller && !suspended ? (
-        <section className="space-y-3">
+        <section id="go-live" className="scroll-mt-24 space-y-3">
           <h3 className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-50">
             <Video className="h-4 w-4" />
             Go live

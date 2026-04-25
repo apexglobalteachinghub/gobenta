@@ -30,6 +30,9 @@ export async function Navbar() {
   let user: { id: string; email?: string | null } | null = null;
   let profileName: string | null = null;
   let avatarUrl: string | null = null;
+  let isVerifiedLiveSeller = false;
+  let liveSellerSuspendedUntil: string | null = null;
+  let activeLiveStreamId: string | null = null;
 
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
@@ -40,11 +43,25 @@ export async function Navbar() {
     if (u) {
       const { data: row } = await supabase
         .from("users")
-        .select("name, avatar_url")
+        .select(
+          "name, avatar_url, is_verified_live_seller, live_seller_suspended_until"
+        )
         .eq("id", u.id)
         .maybeSingle();
       profileName = row?.name ?? null;
       avatarUrl = row?.avatar_url ?? null;
+      isVerifiedLiveSeller = Boolean(row?.is_verified_live_seller);
+      liveSellerSuspendedUntil = row?.live_seller_suspended_until ?? null;
+
+      if (isVerifiedLiveSeller) {
+        const { data: stream } = await supabase
+          .from("live_streams")
+          .select("id")
+          .eq("seller_id", u.id)
+          .eq("status", "live")
+          .maybeSingle();
+        activeLiveStreamId = stream?.id ?? null;
+      }
     }
   }
 
@@ -70,6 +87,9 @@ export async function Navbar() {
               email={user.email ?? null}
               name={profileName}
               avatarUrl={avatarUrl}
+              isVerifiedLiveSeller={isVerifiedLiveSeller}
+              liveSellerSuspendedUntil={liveSellerSuspendedUntil}
+              activeLiveStreamId={activeLiveStreamId}
             />
           ) : (
             <AuthLinks />
